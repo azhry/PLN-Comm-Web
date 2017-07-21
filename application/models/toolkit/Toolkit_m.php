@@ -9,13 +9,24 @@ class Toolkit_m extends MY_Model
 		$this->data['information_schema'] 	= 'information_schema';
 	}
 
+	public function get_all_tables()
+	{
+		$sql 	= 'SELECT TABLE_NAME FROM ' . $this->data['information_schema'] . '.TABLES WHERE TABLE_SCHEMA="' . $this->data['active_db'] . '"';
+		$query 	= $this->db->query($sql);
+		return $query->result();
+	}
+
 	public function check_table($table_name)
 	{
 		$this->load->library('user_agent');
 		$platform = $this->agent->platform();
 		if (strpos($platform, 'Windows') !== FALSE)		// windows case-insensitive, others don't
 		{
-			$q = $this->db->get($this->data['information_schema'] . '.TABLES');
+			$this->db->select('TABLE_NAME');
+			$this->db->from($this->data['information_schema'] . '.TABLES');
+			$this->db->where('TABLE_NAME', $table_name);
+			$this->db->where('TABLE_SCHEMA', $this->data['active_db']);
+			$q = $this->db->get();
 			$res = $q->result_array();
 			foreach ($res as $row)
 			{
@@ -28,6 +39,7 @@ class Toolkit_m extends MY_Model
 		$this->db->select('TABLE_NAME');
 		$this->db->from($this->data['information_schema'] . '.TABLES');
 		$this->db->where('TABLE_NAME', $table_name);
+		$this->db->where('TABLE_SCHEMA', $this->data['active_db']);
 		$query = $this->db->get()->result();
 
 		if (isset($query) && count($query) > 0)
@@ -63,5 +75,12 @@ class Toolkit_m extends MY_Model
 			$result = $query->row(); // assume first column as primary key
 			return $result->COLUMN_NAME;
 		}
+	}
+
+	public function check_auto_increment($table_name)
+	{
+		$sql = 'SELECT EXTRA FROM ' . $this->data['information_schema'] . '.COLUMNS WHERE TABLE_SCHEMA="' . $this->data['active_db'] . '" AND TABLE_NAME="' . $table_name . '" AND COLUMN_NAME="' . $this->get_primary_key($table_name) . '"';
+		$query = $this->db->query($sql)->row();
+		return $query->EXTRA == 'auto_increment';
 	}
 }

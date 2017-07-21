@@ -6,7 +6,7 @@ class Admin_m extends MY_Model
 	{
 		parent::__construct();
 		$this->data['table_name']  = 'admin';
-		$this->data['primary_key'] = 'no_pegawai';
+		$this->data['primary_key'] = 'id_user';
 	}
 }
 

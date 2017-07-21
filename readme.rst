@@ -17,6 +17,7 @@ Features
 **************************
 
 - CRUD Generator
+- Model Generator
 
 *******************
 In-development Features
@@ -24,12 +25,11 @@ In-development Features
 
 - Login Generator
 - Register Generator
-- Model Generator
 - Extendable Template
 
 ***************
 Contributor
 ***************
 
-@azhry - Azhary Arliansyah
-@Apranta - Rezi Apriliansyah
+- @azhry - Azhary Arliansyah
+- @Apranta - Rezi Apriliansyah

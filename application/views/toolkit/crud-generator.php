@@ -102,43 +102,31 @@
 			json_api: $('#json_api').is(':checked')
 		};
 
-		var x = 0; // temp
+		var data = {
+			'generate'	: true,
+			'controller': $('#controller').val(),
+			'table'		: $('#table').val(),
+		};
 
-		Object.keys(components).forEach(function(key) {
-			var data = {
-				generate: key,
-				key: $('#' + key).val()
-			};
+		var opt_key = Object.keys(options);
+		var opt_val = Object.values(options);
+		for (var i = 0; i < opt_key.length; i++)
+			data[opt_key[i]] = opt_val[i];
 
-			$('#process').append('<p>Checking ' + (key == 'table' ? 'model' : key) + '...</p>');
-
-			if (key == 'controller') {
-				data['model'] = $('#table').val();
-			} 
-
-			var option_key = Object.keys(options);
-			var option_value = Object.values(options);
-			for (var i = 0; i < option_key.length; i++) {
-				data[option_key[i]] = option_value[i];
+		$.ajax({
+			url 	: '<?= base_url("toolkit/crud-generator") ?>',
+			type	: 'POST',
+			data 	: data,
+			success : function(response) {
+				$('#process').append(response);
+				$('#process').append('<p style="color: green; font-weight: bold;">OK.</p>');
+			},
+			error: function(err) {
+				console.log(err.responseText);
 			}
-				
-
-			$.ajax({
-				url: '<?= base_url('toolkit/crud-generator') ?>',
-				type: 'POST',
-				data: data,
-				success: function(response) {
-					$('#process').append(response);
-					x++;
-					if (x == 2)
-						$('#process').append('<p style="color: green; font-weight: bold;">OK.</p>');
-				},
-				error: function(err) {
-					console.log(err.responseText);
-				}
-			});
 		});
 
+		
 		return false;
 	}
 
