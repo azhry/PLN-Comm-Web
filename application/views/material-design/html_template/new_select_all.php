@@ -36,7 +36,7 @@
                                     <td align="center">
 
                     <?php if ($selectable): ?>
-                    <a href="<?php echo '<?= base_url(\''.strtolower($controller_name).'/detail_'.$model.'/\'.$row[\'' ?><?= $primary_key_column ?><?= '\']) ?>' ?>" class="btn btn-info waves-effect">Details</a>
+                    <a href="<?php echo '<?= base_url(\''.$ENV.'detail_'.$model.'/\'.$row[\'' ?><?= $primary_key_column ?><?= '\']) ?>' ?>" class="btn btn-info waves-effect">Details</a>
                     <?php endif; ?>
 
                     <?php if ($editable): ?>
@@ -63,7 +63,8 @@
         <!-- Add -->
         <div class="modal fade" tabindex="-1" role="dialog" id="add">
           <div class="modal-dialog" role="document">
-            <?= form_open(strtolower($controller_name)) ?>
+            <?= '<?= form_open("' ?><?= $ENV . strtolower($controller_name) . '") ?>' ?>
+
            <div class="modal-content">
               <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -83,7 +84,7 @@
                 <button type="button" class="btn btn-default m-t-15 waves-effect" data-dismiss="modal">Batal</button>
                 <input type="submit" name="insert" value="Simpan" class="btn btn-primary m-t-15 waves-effect">
               </div>
-              <?= form_close() ?>
+              <?= '<?= form_close() ?>' ?>
             </div><!-- /.modal-content -->
           </div><!-- /.modal-dialog -->
         </div><!-- /.modal -->
@@ -96,7 +97,8 @@
         <div class="modal fade" tabindex="-1" role="dialog" id="edit">
           <div class="modal-dialog" role="document">
             <div class="modal-content">
-            <?= form_open(strtolower($controller_name)) ?>
+            <?= '<?= form_open("' ?><?= $ENV . strtolower($controller_name) . '") ?>' ?>
+
               <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title">Edit Data <?= $controller_name ?></h4>
@@ -117,7 +119,7 @@
                 <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
                 <input type="submit" name="edit" value="Edit" class="btn btn-primary">
               </div>
-              <?= form_close() ?>
+              <?= '<?= form_close() ?>' ?>
             </div><!-- /.modal-content -->
           </div><!-- /.modal-dialog -->
         </div><!-- /.modal -->  
@@ -133,7 +135,7 @@
 
         function get_<?= strtolower($table_name) ?>(<?= $primary_key_column ?>) {
             $.ajax({
-                url: <?= '"<?= base_url(\''.$controller_name.'\') ?>"' ?>,
+                url: <?= '"<?= base_url(\''.$ENV.$controller_name.'\') ?>"' ?>,
                 type: 'POST',
                 data: {
                     <?= $primary_key_column ?>: <?= $primary_key_column ?>,
@@ -159,14 +161,14 @@
 
         function delete_<?= strtolower($table_name) ?>(<?= $primary_key_column ?>) {
             $.ajax({
-                url: <?= '"<?= base_url(\''.$controller_name.'\') ?>"' ?>,
+                url: <?= '"<?= base_url(\''.$ENV.$controller_name.'\') ?>"' ?>,
                 type: 'POST',
                 data: {
                     <?= $primary_key_column ?>: <?= $primary_key_column ?>,
                     delete: true
                 },
                 success: function() {
-                    window.location = <?= '"<?= base_url(\''.$controller_name.'\') ?>"' ?>;
+                    window.location = <?= '"<?= base_url(\''.$ENV.$controller_name.'\') ?>"' ?>;
                 }
             });   
         }

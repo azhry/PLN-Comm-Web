@@ -12,6 +12,7 @@ class Toolkit extends MY_Controller
 		$this->load->model('toolkit/toolkit_m');
 		$this->opt = [];
 		$this->metadata = [];
+		$this->metadata['ENV'] = 'admin/';
 		$this->response = [];
 		$this->response['html'] = '';
 	}

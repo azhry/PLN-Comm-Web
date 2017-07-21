@@ -19,7 +19,7 @@ if ($this->POST('insert'))
 		<?php endforeach; ?>
 	];
 			$this-><?= $model_name ?>->insert($this->data['entry']);
-			redirect('<?= strtolower($controller_name) ?>');
+			redirect('<?= $ENV . strtolower($controller_name) ?>');
 			exit;
 		}
 		<?php endif; ?>
@@ -41,7 +41,7 @@ if ($this->POST('edit') && $this->POST('edit_<?= $primary_key_column ?>'))
 		<?php endforeach; ?>
 	];
 			$this-><?= $model_name ?>->update($this->POST('edit_<?= $primary_key_column ?>'), $this->data['entry']);
-			redirect('<?= strtolower($controller_name) ?>');
+			redirect('<?= $ENV . strtolower($controller_name) ?>');
 			exit;
 		}
 
@@ -73,7 +73,7 @@ if ($this->POST('edit') && $this->POST('edit_<?= $primary_key_column ?>'))
 		$this->data['<?= $primary_key_column ?>'] = $this->uri->segment(3);
 		if (!isset($this->data['<?= $primary_key_column ?>']))
 		{
-			redirect('<?= strtolower($controller_name) ?>');
+			redirect('<?= $ENV . strtolower($controller_name) ?>');
 			exit;
 		}
 
