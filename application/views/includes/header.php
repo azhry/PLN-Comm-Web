@@ -13,6 +13,8 @@
 	<!--     Fonts and icons     -->
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" />
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" />
 
 	<!-- CSS Files -->
@@ -27,6 +29,7 @@
 	</script>
 	<script type="text/javascript" language="javascript" src="<?= base_url() ?>/assets/js/dataTables.material.js">
 	</script>
+	<script src="https://storage.googleapis.com/code.getmdl.io/1.0.0/material.js"></script>
 </head>
 
 <body class="main">
@@ -35,14 +38,20 @@
 					<nav class="navbar navbar-info">
 						<div class="container">
 							<div class="navbar-header">
-								<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#example-navbar-info">
-									<span class="sr-only">Toggle navigation</span>
-									<span class="icon-bar"></span>
-									<span class="icon-bar"></span>
-									<span class="icon-bar"></span>
-								</button>
-								<a class="navbar-brand" href="#pablo">Puding Web Toolkit</a>
+								<a class="navbar-brand" href="#pablo"><?= isset($nav_title) ? $nav_title : 'PLN-Comm' ?></a>
 							</div>
+							<ul class="nav navbar-nav navbar-right" id="example-navbar-info">
+								<?php  
+									$is_logged_in = $this->session->userdata('user_id');
+									if (isset($is_logged_in)):
+								?>
+								<li>
+			    					<a href="<?= base_url('user/logout') ?>">
+			    						Logout <i class="material-icons">exit_to_app</i>
+			    					</a>
+			    				</li>
+			    				<?php endif; ?>
+			        		</ul>
 						</div>
 					</nav>
 <!-- end navbar -->

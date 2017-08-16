@@ -12,9 +12,115 @@ class Toolkit extends MY_Controller
 		$this->load->model('toolkit/toolkit_m');
 		$this->opt = [];
 		$this->metadata = [];
-		$this->metadata['ENV'] = 'admin/';
+		$this->metadata['ENV'] = '';
 		$this->response = [];
 		$this->response['html'] = '';
+	}
+
+	public function crud_generator()
+	{
+		if ($this->POST('generate'))
+		{
+			$this->response['status'] = 0;
+			$this->response['html'] = '';
+			
+			$options = [
+				'selectable'	=> $this->POST('selectable'),
+				'insertable'	=> $this->POST('insertable'),
+				'editable'		=> $this->POST('editable'),
+				'deletable'		=> $this->POST('deletable'),
+				'primary_key'	=> $this->POST('primary_key'),
+				'json_api'		=> $this->POST('json_api')
+			];
+
+			foreach ($options as $key => $value)
+				$this->metadata[$key] = FALSE;
+
+			$this->metadata['template'] = 'material-design';
+			$this->set_options($options, $this->POST('table'), $this->metadata['template']);
+			$this->generate_controller($this->metadata['template']);
+			$this->generate_model();
+			$this->generate_view($this->metadata['template'], $this->POST('table'));
+
+			echo $this->response['html'];
+			exit;
+		}
+
+		$this->data['title']	= 'CRUD Generator';
+		$this->data['content']	= 'crud-generator';
+		$this->template($this->data, 'toolkit');
+	}
+
+	public function crud_generator_selected()
+	{
+		if ($this->POST('generate'))
+		{
+			$this->data['file_str'] = '<?php defined(\'BASEPATH\') || exit(\'No direct script allowed\');';
+
+			$this->data['file_str'] .= '}';
+		}
+
+		$this->data['title']		= 'CRUD Generator Selected';
+		$this->data['content']		= 'crud-generator-selected';
+		$this->data['all_tables']	= $this->toolkit_m->get_all_tables();
+		$this->template($this->data, 'toolkit');
+	}
+
+	public function model_generator()
+	{
+		if ($this->POST('generate'))
+		{
+			$response['html'] = '';
+			$this->data['root_project_directory'] = basename(realpath(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..'));
+			$this->load->model('toolkit/toolkit_m');
+			$response['html'] .= '<b>Checking database '. $this->db->database .'...</b><br><br>';
+			$this->data['project_tables'] = $this->toolkit_m->get_all_tables();
+			$this->data['root_project_directory'] = str_replace('-', '_', $this->data['root_project_directory']);
+			foreach ($this->data['project_tables'] as $table)
+			{
+				$prefix = $this->POST('prefix');
+				if ($prefix == 'true')
+					$model_name = strtoupper($this->data['root_project_directory']) . '_' . $table->TABLE_NAME . '_m';
+				else
+					$model_name = $table->TABLE_NAME . '_m';
+
+				$model_name = ucfirst($model_name);
+				$response['html'] .= 'Generating model ' . $model_name . '.php<br>';
+				if (file_exists(realpath(APPPATH . 'models/' . $model_name . '.php')))
+					$response['html'] .= 'Model ' . $model_name . '.php already exists<br><br>';
+				else
+				{
+					$file_data = [
+						'model_name'		=> $model_name,
+						'table_name'		=> $table->TABLE_NAME,
+						'primary_key'		=> $this->toolkit_m->get_primary_key($table->TABLE_NAME)
+					];
+					$file_content = '<?php';
+					$file_content .= $this->load->view('toolkit/php_template/new_model_template', $file_data, TRUE);
+					if (file_put_contents('application/models/' . $model_name . '.php', $file_content))
+						$response['html'] .= '<span style="color: green;">' . $model_name . '.php is generated to handle ' . $table->TABLE_NAME . ' table logic</span><br><br>';
+					else
+						$response['html'] .= '<span style="color: red;">Something went wrong while generating ' . $model_name . '.php</span><br><br>';
+				}
+			}
+
+			echo json_encode($response);
+			exit;
+		}
+
+		$this->data['title']	= 'Model Generator';
+		$this->data['content']	= 'model-generator';
+		$this->template($this->data, 'toolkit');
+	}
+
+	private function generate_index()
+	{
+
+	}
+
+	private function generate_detail()
+	{
+
 	}
 
 	private function selectable($enable, $model, $template)
@@ -198,87 +304,6 @@ class Toolkit extends MY_Controller
 			$this->response['html'] .= '<p style="color: green;">'. $view_name .'.php generated at application/views</p>';	
 		else
 			$this->response['html'] .= '<p style="color: red;">Error generating view '. $view_name .'.php</p>';
-	}
-
-	public function crud_generator()
-	{
-		if ($this->POST('generate'))
-		{
-			$this->response['status'] = 0;
-			$this->response['html'] = '';
-			
-			$options = [
-				'selectable'	=> $this->POST('selectable'),
-				'insertable'	=> $this->POST('insertable'),
-				'editable'		=> $this->POST('editable'),
-				'deletable'		=> $this->POST('deletable'),
-				'primary_key'	=> $this->POST('primary_key'),
-				'json_api'		=> $this->POST('json_api')
-			];
-
-			foreach ($options as $key => $value)
-				$this->metadata[$key] = FALSE;
-
-			$this->metadata['template'] = 'material-design';
-			$this->set_options($options, $this->POST('table'), $this->metadata['template']);
-			$this->generate_controller($this->metadata['template']);
-			$this->generate_model();
-			$this->generate_view($this->metadata['template'], $this->POST('table'));
-
-			echo $this->response['html'];
-			exit;
-		}
-
-		$this->data['title']	= 'CRUD Generator';
-		$this->data['content']	= 'crud-generator';
-		$this->template($this->data, 'toolkit');
-	}
-
-	public function model_generator()
-	{
-		if ($this->POST('generate'))
-		{
-			$response['html'] = '';
-			$this->data['root_project_directory'] = basename(realpath(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..'));
-			$this->load->model('toolkit/toolkit_m');
-			$response['html'] .= '<b>Checking database '. $this->db->database .'...</b><br><br>';
-			$this->data['project_tables'] = $this->toolkit_m->get_all_tables();
-			$this->data['root_project_directory'] = str_replace('-', '_', $this->data['root_project_directory']);
-			foreach ($this->data['project_tables'] as $table)
-			{
-				$prefix = $this->POST('prefix');
-				if ($prefix == 'true')
-					$model_name = strtoupper($this->data['root_project_directory']) . '_' . $table->TABLE_NAME . '_m';
-				else
-					$model_name = $table->TABLE_NAME . '_m';
-
-				$model_name = ucfirst($model_name);
-				$response['html'] .= 'Generating model ' . $model_name . '.php<br>';
-				if (file_exists(realpath(APPPATH . 'models/' . $model_name . '.php')))
-					$response['html'] .= 'Model ' . $model_name . '.php already exists<br><br>';
-				else
-				{
-					$file_data = [
-						'model_name'		=> $model_name,
-						'table_name'		=> $table->TABLE_NAME,
-						'primary_key'		=> $this->toolkit_m->get_primary_key($table->TABLE_NAME)
-					];
-					$file_content = '<?php';
-					$file_content .= $this->load->view('toolkit/php_template/new_model_template', $file_data, TRUE);
-					if (file_put_contents('application/models/' . $model_name . '.php', $file_content))
-						$response['html'] .= '<span style="color: green;">' . $model_name . '.php is generated to handle ' . $table->TABLE_NAME . ' table logic</span><br><br>';
-					else
-						$response['html'] .= '<span style="color: red;">Something went wrong while generating ' . $model_name . '.php</span><br><br>';
-				}
-			}
-
-			echo json_encode($response);
-			exit;
-		}
-
-		$this->data['title']	= 'Model Generator';
-		$this->data['content']	= 'model-generator';
-		$this->template($this->data, 'toolkit');
 	}
 
 	public function check_table()

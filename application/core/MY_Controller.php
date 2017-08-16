@@ -2,19 +2,16 @@
 
 class MY_Controller extends CI_Controller
 {
-  public $title = 'CRUD Generator';
+  public $title = 'PLN-Comm';
 	public function __construct()
 	{
 		parent::__construct();
 		date_default_timezone_set("Asia/Jakarta");
 	}
 
-	public function template($data, $subdirectory = '')
+	public function template($data)
 	{
-		if (strlen($subdirectory) <= 0)
-	    	return $this->load->view('includes/template', $data);
-		else
-			return $this->load->view($subdirectory . '/includes/template', $data);
+		return $this->load->view('includes/template', $data);
 	}
 
 	public function POST($name)

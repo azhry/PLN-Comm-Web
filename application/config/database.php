@@ -75,10 +75,14 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
+	// 'hostname' => 'pln-comm.database.windows.net',
+	// 'username' => 'azhary@pln-comm',
+	// 'password' => '4kuGanteng',
+	// 'database' => 'db_pln_comm',
 	'hostname' => 'localhost',
 	'username' => 'root',
 	'password' => '',
-	'database' => 'db_kimia',
+	'database' => 'db_pln',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,
