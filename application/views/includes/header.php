@@ -30,6 +30,7 @@
 	<script type="text/javascript" language="javascript" src="<?= base_url() ?>/assets/js/dataTables.material.js">
 	</script>
 	<script src="https://storage.googleapis.com/code.getmdl.io/1.0.0/material.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.0.4/material.js"></script>
 </head>
 
 <body class="main">

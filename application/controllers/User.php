@@ -17,6 +17,8 @@ class User extends MY_Controller
 
 	public function index()
 	{
+		$this->_update_task();
+
 		if ($action = $this->input->get('action'))
 		{
 			if ($action == 'get_list_members')
@@ -292,6 +294,30 @@ class User extends MY_Controller
 			$data['completed'] = $this->todo_items_m->get(['LIST_ID' => $data['list_id'], 'IS_COMPLETED' => 1]);
 			echo json_encode($data);
 			return TRUE;
+		}
+	}
+
+	private function _update_task()
+	{
+		if ($this->POST('update_task'))
+		{
+			$this->load->model('todo_items_m');
+			$data['TODO_ID'] 		= $this->POST('todo_id');
+			$data['IS_COMPLETED'] 	= $this->POST('completed') == 'true' ? 1 : 0;
+			$this->todo_items_m->update($data['TODO_ID'], $data);
+
+			$response['ongoing'] = $this->todo_items_m->get([
+				'LIST_ID' 		=> $this->POST('list_id'),
+				'IS_COMPLETED'	=> 0
+			]);
+			$response['completed'] = $this->todo_items_m->get([
+				'LIST_ID' 		=> $this->POST('list_id'),
+				'IS_COMPLETED'	=> 1
+			]);
+			$response['list_id'] = $this->POST('list_id');
+			$response['status'] = 0;
+			echo json_encode($response);
+			exit;
 		}
 	}
 

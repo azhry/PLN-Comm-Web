@@ -248,7 +248,7 @@
 		color: #555;
 	}
 
-	#ongoing-todo .panel-default {
+	#ongoing-todo .panel-default, #completed-todo .panel-default {
 		margin-bottom: 1px;
 	}
 </style>
@@ -297,7 +297,7 @@
 				<?php endforeach; ?>
 			</div>
 			<div class="separator"></div>
-			<div class="btn btn-info" style="width: 100%;"id="show-todo-btn">
+			<div class="btn btn-info" style="width: 100%;" id="show-todo-btn">
 				Show completed todo
 			</div>
 			<div id="completed-todo" style="display: none;">
@@ -473,6 +473,74 @@
 
 		$('#item-list').css('height', $(window).height() - 90);
 
+		$('#ongoing-todo, #completed-todo').on('click', 'input.mdl-checkbox__input', function() {
+			$.post('<?= base_url('user') ?>', {
+				update_task: true,
+				todo_id: $(this).data('todo-id'),
+				list_id: $(this).data('list-id'),
+				completed: $(this).is(':checked')
+			})
+				.done(function(response) {
+					var json = JSON.parse(response);
+					if (json.status == 0) {
+						var ongoingItems = json.ongoing;
+						var completedItems = json.completed;
+						$('#ongoing-todo').html('');
+						$('#completed-todo').html('');
+						for (var i = 0; i < ongoingItems.length; i++) {
+							$('#ongoing-todo').append('<div class="panel panel-default">' +
+								'<div class="panel-body">' +
+									'<div>' +
+										'<table>' +
+											'<tr>' +
+												'<td>' +
+													'<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="ongoing-checkbox-' + ongoingItems[i].TODO_ID + '">' +
+														'<input type="checkbox" id="ongoing-checkbox-' + ongoingItems[i].TODO_ID + '" class="mdl-checkbox__input" data-todo-id="' + ongoingItems[i].TODO_ID + '" data-list-id="' + json.list_id + '">' +
+													'</label>' +
+												'</td>' +
+												'<td>' +
+													'<span class="mdl-checkbox__label uncompleted-todo-item-title">' + ongoingItems[i].ITEM_DESC + '</span>' +
+												'</td>' +
+											'</tr>' +
+										'</table>' +
+									'</div>' +
+								'</div>' +
+							'</div>');
+
+							componentHandler.upgradeDom('MaterialCheckbox');
+						}
+						for (var i = 0; i < completedItems.length; i++) {
+							$('#completed-todo').append('<div class="panel panel-default" style="opacity: 0.8;">' +
+								'<div class="panel-body">' +
+									'<div>' +
+										'<table>' +
+											'<tr>' +
+												'<td>' +
+													'<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="completed-checkbox-' + completedItems[i].TODO_ID + '">' +
+														'<input type="checkbox" id="completed-checkbox-' + completedItems[i].TODO_ID + '" class="mdl-checkbox__input" data-todo-id="' + completedItems[i].TODO_ID + '" data-list-id="' + json.list_id + '" checked>' +
+													'</label>' +
+												'</td>' +
+												'<td>' +
+													'<span class="mdl-checkbox__label completed-todo-item-title">' + completedItems[i].ITEM_DESC + '</span>' +
+												'</td>' +
+											'</tr>' +
+										'</table>' +
+									'</div>' +
+								'</div>' +
+							'</div>');
+
+							componentHandler.upgradeDom('MaterialCheckbox');
+						}
+					}
+				})
+				.fail(function() {
+					console.log('UPDATE TASK FAILED');
+				})
+				.error(function() {
+					console.log('UPDATE TASK ERROR');
+				});
+		});
+
 		var shown = false;
 		$('#show-todo-btn').on('click', function() {
 			shown = !shown;
@@ -485,7 +553,6 @@
 
 		$('.list-title').on('click', function() {
 			var childNode = $(this).children();
-			console.log(childNode);
 		    var listID = childNode[0].value;
 			$.ajax({
 				url: '<?= base_url('user') ?>',
@@ -499,41 +566,53 @@
 					$('#ongoing-todo').html('');
 					$('#completed-todo').html('');
 					var ongoing_item = json.ongoing;
-					console.log(ongoing_item);
 					var completed_item = json.completed;
 					for (var i = 0; i < ongoing_item.length; i++)
 					{
-						var panel = document.createElement('div');
-						panel.className = 'panel panel-default';
-						var panel_body = document.createElement('div');
-						panel_body.className = 'panel-body';
-						panel.appendChild(panel_body);
-						var checkbox = document.createElement('div');
-						checkbox.className = 'checkbox';
-						panel_body.appendChild(checkbox);
-						var label = document.createElement('label');
-						checkbox.appendChild(label);
-						var input = document.createElement('input');
-						input.type = 'checkbox';
-						input.name = 'item-checkbox';
-						var span = document.createElement('span');
-						span.className = 'uncompleted-todo-item-title';
-						label.appendChild(input);
-						label.appendChild(span);
-						var textNode = document.createTextNode(ongoing_item[i].ITEM_DESC);
-						span.appendChild(textNode);
-						componentHandler.upgradeAllRegistered();
-						$('#ongoing-todo').append(panel);
-						// $('#ongoing-todo').append('<div class="panel panel-default">' +
-						// 	'<div class="panel-body">' +
-						// 		'<div class="checkbox">' +
-						// 			'<label>' +
-						// 				'<input type="checkbox" name="item-checkbox">' +
-						// 				'<span class="uncompleted-todo-item-title">' + ongoing_item[i].ITEM_DESC + '</span>' +
-						// 			'</label>' +
-						// 		'</div>' +
-						// 	'</div>' +
-						// '</div>');
+						$('#ongoing-todo').append('<div class="panel panel-default">' +
+							'<div class="panel-body">' +
+								'<div>' +
+									'<table>' +
+										'<tr>' +
+											'<td>' +
+												'<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkbox-' + ongoing_item[i].TODO_ID + '">' +
+													'<input type="checkbox" id="checkbox-' + ongoing_item[i].TODO_ID + '" class="mdl-checkbox__input" data-todo-id="' + ongoing_item[i].TODO_ID + '" data-list-id="' + listID + '">' +
+												'</label>' +
+											'</td>' +
+											'<td>' +
+												'<span class="mdl-checkbox__label uncompleted-todo-item-title">' + ongoing_item[i].ITEM_DESC + '</span>' +
+											'</td>' +
+										'</tr>' +
+									'</table>' +
+								'</div>' +
+							'</div>' +
+						'</div>');
+
+						componentHandler.upgradeDom('MaterialCheckbox');
+					}
+
+					for (var i = 0; i < completed_item.length; i++)
+					{
+						$('#completed-todo').append('<div class="panel panel-default">' +
+							'<div class="panel-body">' +
+								'<div>' +
+									'<table>' +
+										'<tr>' +
+											'<td>' +
+												'<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkbox-' + completed_item[i].TODO_ID + '">' +
+													'<input type="checkbox" id="checkbox-' + completed_item[i].TODO_ID + '" class="mdl-checkbox__input" data-todo-id="' + completed_item[i].TODO_ID + '" data-list-id="' + listID + '" checked>' +
+												'</label>' +
+											'</td>' +
+											'<td>' +
+												'<span class="mdl-checkbox__label completed-todo-item-title">' + completed_item[i].ITEM_DESC + '</span>' +
+											'</td>' +
+										'</tr>' +
+									'</table>' +
+								'</div>' +
+							'</div>' +
+						'</div>');
+
+						componentHandler.upgradeDom('MaterialCheckbox');
 					}
 				},
 				error: function(e) {
