@@ -18,6 +18,7 @@ class User extends MY_Controller
 	public function index()
 	{
 		$this->_update_task();
+		$this->_quick_add_task();
 
 		if ($action = $this->input->get('action'))
 		{
@@ -203,10 +204,16 @@ class User extends MY_Controller
 			$data['IS_COMPLETED']	= 0;
 			$this->todo_items_m->insert($data);
 
-			return TRUE;
-		}
+			$response['status'] = 0;
+			$response['ongoing'] = $this->todo_items_m->get([
+				'LIST_ID' 		=> $data['LIST_ID'], 
+				'IS_COMPLETED'	=> 0
+			]);
+			$response['list_id'] = $data['LIST_ID'];
+			echo json_encode($response);
 
-		return FALSE;
+			exit;
+		}
 	}
 
 	private function _add_task()

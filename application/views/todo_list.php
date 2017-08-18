@@ -1,3 +1,4 @@
+<link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/mdl-drawer.css') ?>">
 <style type="text/css">
 		body .legitRipple-ripple {
 		  background: rgba(0,0,0,0.17);
@@ -251,7 +252,67 @@
 	#ongoing-todo .panel-default, #completed-todo .panel-default {
 		margin-bottom: 1px;
 	}
+
+	.todo-item-label {
+		width: 100%;
+		cursor: pointer;
+	}
+
+	.mdl-textfield__label__icon {
+	   position: absolute;
+	   left: 0;
+	   top: 20px;
+	}
 </style>
+<div class="mdl-layout__drawer-right">
+	<table style="width: 100%;">
+		<tr style="width: 90%; margin: 0 auto;">
+			<td style="padding-left: 10px; color: rgba(0, 0, 0, 0.3);">
+				<i class="material-icons">assignment</i>
+			</td>
+			<td>
+				<div class="mdl-textfield mdl-js-textfield" style="width: 90%; margin: 0 auto;">
+					<strong><input class="mdl-textfield__input" id="item-title-drawer-textfield" type="text"></strong>
+					<label class="mdl-textfield__label"></label>
+				</div>
+			</td>
+		</tr>
+		<tr style="width: 90%; margin: 0 auto;">
+			<td style="padding-left: 10px; color: rgba(0, 0, 0, 0.3);">
+				<i class="material-icons">person</i>
+			</td>
+			<td>
+				<div class="mdl-textfield mdl-js-textfield" style="width: 90%; margin: 0 auto;">
+					<input class="mdl-textfield__input" type="text">
+					<label class="mdl-textfield__label">Assign to</label>
+				</div>
+			</td>
+		</tr>
+		<tr style="width: 90%; margin: 0 auto;">
+			<td style="padding-left: 10px; color: rgba(0, 0, 0, 0.3);">
+				<i class="material-icons">date_range</i>
+			</td>
+			<td>
+				<div class="mdl-textfield mdl-js-textfield" style="width: 90%; margin: 0 auto;">
+					<input class="mdl-textfield__input" type="text">
+					<label class="mdl-textfield__label">Set due date</label>
+				</div>
+			</td>
+		</tr>
+		<tr style="width: 90%; margin: 0 auto;">
+			<td style="padding-left: 10px; color: rgba(0, 0, 0, 0.3); padding-top: 21px;" valign="top">
+				<i class="material-icons">note</i>
+			</td>
+			<td>
+				<div class="mdl-textfield mdl-js-textfield" style="width: 90%; margin: 0 auto;">
+					<textarea class="mdl-textfield__input" rows="7"></textarea>
+					<label class="mdl-textfield__label">Note</label>
+				</div>
+			</td>
+		</tr>
+	</table>
+</div>
+<div class="mdl-layout__obfuscator-right"></div>
 <div class="row">
 	<div class="col-md-3">
 		<div id="todo-list-container" style="padding-left: 16px;">
@@ -280,17 +341,29 @@
 			<?php 
 				if (isset($first_list)):
 			?>
+			<div class="mdl-textfield mdl-js-textfield" style="background-color: rgba(3, 169, 244, 0.9); width: 100%; margin-bottom: 5px; border-radius: 10px;">
+				<input class="mdl-textfield__input" type="text" style="margin-left: 10px; margin-right: 10px; color: white; width: 98%;" id="new-todo-item-textfield" data-list-id="<?= $first_list->LIST_ID ?>">
+				<label class="mdl-textfield__label" style="color: rgba(255, 255, 255, 0.8); margin-left: 10px; width: 98%;">+ Add to-do item</label>
+			</div>
 			<div id="ongoing-todo">
 				<?php  
 					foreach ($first_list_item_ongoing as $item):
 				?>
 				<div class="panel panel-default">
 					<div class="panel-body">
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" name="item-checkbox">
-								<span class="uncompleted-todo-item-title">Item 1</span>
-							</label>
+						<div>
+							<table>
+								<tr>
+									<td>
+										<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="ongoing-checkbox-<?= $item->TODO_ID ?>">
+											<input type="checkbox" id="ongoing-checkbox-<?= $item->TODO_ID ?>" class="mdl-checkbox__input" data-todo-id="<?= $item->TODO_ID ?>" data-list-id="<?= $item->LIST_ID ?>">
+										</label>
+									</td>
+									<td class="todo-item-label">
+										<span class="mdl-checkbox__label uncompleted-todo-item-title"><?= $item->ITEM_DESC ?></span>
+									</td>
+								</tr>
+							</table>
 						</div>
 					</div>
 				</div>
@@ -304,13 +377,21 @@
 				<?php  
 					foreach ($first_list_item_completed as $item):
 				?>
-				<div class="panel panel-default" style="opacity: 0.8;">
+				<div class="panel panel-default" style="opacity: 0.7;">
 					<div class="panel-body">
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" name="item-checkbox" checked>
-								<span class="completed-todo-item-title">Item 1</span>
-							</label>
+						<div>
+							<table>
+								<tr>
+									<td>
+										<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="ongoing-checkbox-<?= $item->TODO_ID ?>">
+											<input type="checkbox" id="ongoing-checkbox-<?= $item->TODO_ID ?>" class="mdl-checkbox__input" data-todo-id="<?= $item->TODO_ID ?>" data-list-id="<?= $item->LIST_ID ?>" checked>
+										</label>
+									</td>
+									<td class="todo-item-label">
+										<span class="mdl-checkbox__label completed-todo-item-title"><?= $item->ITEM_DESC ?></span>
+									</td>
+								</tr>
+							</table>
 						</div>
 					</div>
 				</div>
@@ -454,6 +535,47 @@
 			});
 		});
 
+		$('#new-todo-item-textfield').keydown(function(e) {
+			if (e.keyCode == 13) {
+				$.post('<?= base_url('user') ?>', {
+					quick_add: true,
+					list_id: $('#new-todo-item-textfield').data('list-id'),
+					item_desc: $('#new-todo-item-textfield').val()
+				})
+				.done(function(response) {
+					var json = JSON.parse(response);
+					if (json.status == 0) {
+						$('#ongoing-todo').html('');
+						var ongoingItems = json.ongoing;
+						for (var i = 0; i < ongoingItems.length; i++) {
+							$('#ongoing-todo').append('<div class="panel panel-default">' +
+								'<div class="panel-body">' +
+									'<div>' +
+										'<table>' +
+											'<tr>' +
+												'<td>' +
+													'<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="ongoing-checkbox-' + ongoingItems[i].TODO_ID + '">' +
+														'<input type="checkbox" id="ongoing-checkbox-' + ongoingItems[i].TODO_ID + '" class="mdl-checkbox__input" data-todo-id="' + ongoingItems[i].TODO_ID + '" data-list-id="' + json.list_id + '">' +
+													'</label>' +
+												'</td>' +
+												'<td class="todo-item-label">' +
+													'<span class="mdl-checkbox__label uncompleted-todo-item-title">' + ongoingItems[i].ITEM_DESC + '</span>' +
+												'</td>' +
+											'</tr>' +
+										'</table>' +
+									'</div>' +
+								'</div>' +
+							'</div>');
+
+							componentHandler.upgradeDom('MaterialCheckbox');
+						}
+						$('#new-todo-item-textfield').val('');
+					}
+				});
+				return false;
+			}
+		});
+
 		$('#delete-btn').on('click', function() {
 			$.ajax({
 				url: '<?= base_url('user') ?>',
@@ -472,6 +594,24 @@
 		});
 
 		$('#item-list').css('height', $(window).height() - 90);
+
+		$('#ongoing-todo, #completed-todo').on('click', 'td.todo-item-label', function(){
+			if($('.mdl-layout__drawer-right').hasClass('active')){       
+				$('.mdl-layout__drawer-right').removeClass('active'); 
+			} else{
+				var item = $(this).children();
+				$('#item-title-drawer-textfield').val(item[0].innerText);
+				$('.mdl-layout__drawer-right').addClass('active'); 
+			}
+		});
+
+		$('.mdl-layout__obfuscator-right').click(function(){
+			if($('.mdl-layout__drawer-right').hasClass('active')){       
+				$('.mdl-layout__drawer-right').removeClass('active'); 
+			} else{
+				$('.mdl-layout__drawer-right').addClass('active'); 
+			}
+		});
 
 		$('#ongoing-todo, #completed-todo').on('click', 'input.mdl-checkbox__input', function() {
 			$.post('<?= base_url('user') ?>', {
@@ -498,7 +638,7 @@
 														'<input type="checkbox" id="ongoing-checkbox-' + ongoingItems[i].TODO_ID + '" class="mdl-checkbox__input" data-todo-id="' + ongoingItems[i].TODO_ID + '" data-list-id="' + json.list_id + '">' +
 													'</label>' +
 												'</td>' +
-												'<td>' +
+												'<td class="todo-item-label">' +
 													'<span class="mdl-checkbox__label uncompleted-todo-item-title">' + ongoingItems[i].ITEM_DESC + '</span>' +
 												'</td>' +
 											'</tr>' +
@@ -510,7 +650,7 @@
 							componentHandler.upgradeDom('MaterialCheckbox');
 						}
 						for (var i = 0; i < completedItems.length; i++) {
-							$('#completed-todo').append('<div class="panel panel-default" style="opacity: 0.8;">' +
+							$('#completed-todo').append('<div class="panel panel-default" style="opacity: 0.7;">' +
 								'<div class="panel-body">' +
 									'<div>' +
 										'<table>' +
@@ -520,7 +660,7 @@
 														'<input type="checkbox" id="completed-checkbox-' + completedItems[i].TODO_ID + '" class="mdl-checkbox__input" data-todo-id="' + completedItems[i].TODO_ID + '" data-list-id="' + json.list_id + '" checked>' +
 													'</label>' +
 												'</td>' +
-												'<td>' +
+												'<td class="todo-item-label">' +
 													'<span class="mdl-checkbox__label completed-todo-item-title">' + completedItems[i].ITEM_DESC + '</span>' +
 												'</td>' +
 											'</tr>' +
@@ -579,7 +719,7 @@
 													'<input type="checkbox" id="checkbox-' + ongoing_item[i].TODO_ID + '" class="mdl-checkbox__input" data-todo-id="' + ongoing_item[i].TODO_ID + '" data-list-id="' + listID + '">' +
 												'</label>' +
 											'</td>' +
-											'<td>' +
+											'<td class="todo-item-label">' +
 												'<span class="mdl-checkbox__label uncompleted-todo-item-title">' + ongoing_item[i].ITEM_DESC + '</span>' +
 											'</td>' +
 										'</tr>' +
@@ -593,7 +733,7 @@
 
 					for (var i = 0; i < completed_item.length; i++)
 					{
-						$('#completed-todo').append('<div class="panel panel-default">' +
+						$('#completed-todo').append('<div class="panel panel-default" style="opacity: 0.7;">' +
 							'<div class="panel-body">' +
 								'<div>' +
 									'<table>' +
@@ -603,7 +743,7 @@
 													'<input type="checkbox" id="checkbox-' + completed_item[i].TODO_ID + '" class="mdl-checkbox__input" data-todo-id="' + completed_item[i].TODO_ID + '" data-list-id="' + listID + '" checked>' +
 												'</label>' +
 											'</td>' +
-											'<td>' +
+											'<td class="todo-item-label">' +
 												'<span class="mdl-checkbox__label completed-todo-item-title">' + completed_item[i].ITEM_DESC + '</span>' +
 											'</td>' +
 										'</tr>' +
@@ -614,6 +754,8 @@
 
 						componentHandler.upgradeDom('MaterialCheckbox');
 					}
+
+					$('#new-todo-item-textfield').attr('data-list-id', listID);
 				},
 				error: function(e) {
 					console.log(e.responseText);
