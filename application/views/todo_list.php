@@ -282,10 +282,11 @@
 				<i class="material-icons">person</i>
 			</td>
 			<td>
-				<div class="mdl-textfield mdl-js-textfield" style="width: 90%; margin: 0 auto;">
-					<input class="mdl-textfield__input" type="text">
-					<label class="mdl-textfield__label">Assign to</label>
-				</div>
+				<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select getmdl-select__fullwidth" style="width: 90%; margin: 0 auto;">
+		            <select class="mdl-textfield__input" id="item-assign-drawer">
+		            </select>
+		            <label for="item-assign-drawer" class="mdl-textfield__label">Assign to</label>
+		        </div>
 			</td>
 		</tr>
 		<tr style="width: 90%; margin: 0 auto;">
@@ -294,8 +295,8 @@
 			</td>
 			<td>
 				<div class="mdl-textfield mdl-js-textfield" style="width: 90%; margin: 0 auto;">
-					<input class="mdl-textfield__input" type="text">
-					<label class="mdl-textfield__label">Set due date</label>
+					<input class="mdl-textfield__input" id="item-due-date-drawer" type="text">
+					<label class="mdl-textfield__label" id="item-due-date-label">Set due date</label>
 				</div>
 			</td>
 		</tr>
@@ -305,12 +306,28 @@
 			</td>
 			<td>
 				<div class="mdl-textfield mdl-js-textfield" style="width: 90%; margin: 0 auto;">
-					<textarea class="mdl-textfield__input" rows="7"></textarea>
-					<label class="mdl-textfield__label">Note</label>
+					<textarea class="mdl-textfield__input" id="item-note-drawer" rows="7"></textarea>
+					<label class="mdl-textfield__label" id="item-note-label">Note</label>
 				</div>
 			</td>
 		</tr>
+		<tr style="width: 90%; margin: 0 auto;">
+			<form id="upload-file" action="" method="POST" enctype="multipart/form-data">
+				<td style="padding-left: 10px; color: rgba(0, 0, 0, 0.3);">
+					<i class="material-icons">attach_file</i>
+				</td>
+				<td>
+					<div class="mdl-textfield mdl-js-textfield" style="width: 90%; margin: 0 auto;">
+						<input class="mdl-textfield__input" id="item-text-file-drawer" name="item-text-file" type="text">
+						<input type="file" id="item-file-drawer" name="uploaded_file" style="display: none;">
+						<label class="mdl-textfield__label" id="item-file-label">Add file</label>
+					</div>
+				</td>
+			</form>
+		</tr>
 	</table>
+	<div id="loader" style="margin: 0 auto;"></div>
+	<div id="item-files" style="width: 90%; margin: 0 auto;"><i class="fa fa-file-o"></i></div>
 </div>
 <div class="mdl-layout__obfuscator-right"></div>
 <div class="row">
@@ -512,6 +529,147 @@
 
 <script type="text/javascript">
 	$(document).ready(function() {
+		$('#item-due-date-drawer').bootstrapMaterialDatePicker({ format: 'YYYY-MM-DD', time: false });
+		$('#item-due-date-drawer').on('change', function() {
+			var datetime = $('#item-due-date-drawer').val();
+			if (datetime.length > 0) {
+				$('#item-due-date-label').text('');
+			} else {
+				$('#item-due-date-label').text('Set due date');
+			}
+		});
+
+		var clicked_todo_id, clicked_list_id, clicked_item;
+		$('#ongoing-todo, #completed-todo').on('click', 'td.todo-item-label', function(){
+			clicked_item = $(this);
+			if($('.mdl-layout__drawer-right').hasClass('active')){       
+				$('.mdl-layout__drawer-right').removeClass('active'); 
+			} else{
+				var item = $(this).children();
+				var parent = $(this).parent();
+				clean(parent[0]);
+				clicked_todo_id = parent[0].childNodes[0].childNodes[0].childNodes[0].getAttribute('data-todo-id');
+				clicked_list_id = parent[0].childNodes[0].childNodes[0].childNodes[0].getAttribute('data-list-id');
+				$.post('<?= base_url('user') ?>', {
+					get_task_details: true,
+					todo_id: clicked_todo_id,
+					list_id: clicked_list_id
+				})
+				.done(function(response) {
+					var json = JSON.parse(response);
+					$('#item-assign-drawer').html('');
+					var members = json.members;
+					var todo = json.todo;
+					if (json.assign) {
+						$('#item-assign-drawer').append('<option value="' + json.assign.USER_ID + '">' + json.assign.NAME + '</option>');
+					} else {
+						$('#item-assign-drawer').append('<option></option>');
+					}
+					for (var i = 0; i < members.length; i++) {
+						if (json.assign) {
+							if (members[i].USER_ID != json.assign.USER_ID) {
+								$('#item-assign-drawer').append('<option value="' + members[i].USER_ID + '">' + members[i].NAME + '</option>');
+							}
+						} else {
+							$('#item-assign-drawer').append('<option value="' + members[i].USER_ID + '">' + members[i].NAME + '</option>');
+						}
+					}
+
+					$('#item-due-date-drawer').val(todo.DUE_DATE);
+					if (todo.DUE_DATE) {
+						$('#item-due-date-label').text('');
+					} else {
+						$('#item-due-date-label').text('Set due date');
+					}
+					$('#item-note-drawer').val(todo.NOTE);
+					if (todo.NOTE) {
+						$('#item-note-label').text('');
+					} else {
+						$('#item-note-label').text('Note');
+					}
+					$('#item-title-drawer-textfield').val(item[0].innerText);
+					$('.mdl-layout__drawer-right').addClass('active');
+				}); 
+
+				$.get('<?= base_url('user?action=get_todo_files&TODO_ID=') ?>' + clicked_todo_id, 
+					function(response) {
+						$('#item-files').html('');
+						var json = JSON.parse(response);
+						var files = json;
+						for (var i = 0; i < files.length; i++) {
+							files[i].FILENAME = files[i].FILENAME.replace(/ /g, '_');
+							if (getFileType(files[i].FILENAME) == 'image') {
+								$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + files[i].FILENAME + '"><i class="fa fa-file-picture-o"></i> ' + files[i].FILENAME +'</a></div>');
+							} else if (getFileType(files[i].FILENAME) == 'word') {
+								$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + files[i].FILENAME + '"><i class="fa fa-file-word-o"></i> ' + files[i].FILENAME +'</a></div>');
+							} else if (getFileType(files[i].FILENAME) == 'excel') {
+								$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + files[i].FILENAME + '"><i class="fa fa-file-excel-o"></i> ' + files[i].FILENAME +'</a></div>');
+							} else if (getFileType(files[i].FILENAME) == 'powerpoint') {
+								$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + files[i].FILENAME + '"><i class="fa fa-file-powerpoint-o"></i> ' + files[i].FILENAME +'</a></div>');
+							} else if (getFileType(files[i].FILENAME) == 'txt') {
+								$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + files[i].FILENAME + '"><i class="fa fa-file-text-o"></i> ' + files[i].FILENAME +'</a></div>');
+							} else if (getFileType(files[i].FILENAME) == 'audio') {
+								$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + files[i].FILENAME + '"><i class="fa fa-file-audio-o"></i> ' + files[i].FILENAME +'</a></div>');
+							} else if (getFileType(files[i].FILENAME) == 'zip') {
+								$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + files[i].FILENAME + '"><i class="fa fa-file-zip-o"></i> ' + files[i].FILENAME +'</a></div>');
+							} else {
+								$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + files[i].FILENAME + '"><i class="fa fa-file-o"></i> ' + files[i].FILENAME +'</a></div>');
+							}
+						}
+					});
+			}
+		});
+
+		$('#item-text-file-drawer').on('click', function() {
+			$('#item-file-drawer').click();
+		});
+
+		$('#item-file-drawer').on('change', function() {
+			var form = $('#upload-file')[0];
+			var formData = new FormData(form);
+			formData.append('action', 'upload_file');
+			formData.append('todo_id', clicked_todo_id);
+			$.ajax({
+				// url: 'http://pudinglab.id/puding-master/PLN/endpoint.php',
+				url: '<?= base_url('user') ?>',
+				type: 'POST',
+				data: formData,
+				contentType: false,
+				processData: false,
+				beforeSend: function() {
+					$('#loader').html('<div class="mdl-spinner mdl-js-spinner is-active" style="margin: 0 auto;"></div>');
+					componentHandler.upgradeDom();
+				},
+				success: function(response) {
+					$('#loader').html('');
+					if (response.length > 0) {
+						response = response.replace(/ /g, '_');
+						if (getFileType(response) == 'image') {
+							$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + response + '"><i class="fa fa-file-picture-o"></i> ' + response +'</a></div>');
+						} else if (getFileType(response) == 'word') {
+							$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + response + '"><i class="fa fa-file-word-o"></i> ' + response +'</a></div>');
+						} else if (getFileType(response) == 'excel') {
+							$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + response + '"><i class="fa fa-file-excel-o"></i> ' + response +'</a></div>');
+						} else if (getFileType(response) == 'powerpoint') {
+							$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + response + '"><i class="fa fa-file-powerpoint-o"></i> ' + response +'</a></div>');
+						} else if (getFileType(response) == 'txt') {
+							$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + response + '"><i class="fa fa-file-text-o"></i> ' + response +'</a></div>');
+						} else if (getFileType(response) == 'audio') {
+							$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + response + '"><i class="fa fa-file-audio-o"></i> ' + response +'</a></div>');
+						} else if (getFileType(response) == 'zip') {
+							$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + response + '"><i class="fa fa-file-zip-o"></i> ' + response +'</a></div>');
+						} else {
+							$('#item-files').append('<div><a href="<?= base_url('assets/uploads/') ?>' + response + '"><i class="fa fa-file-o"></i> ' + response +'</a></div>');
+						}
+					}
+				},
+				error: function(e) {
+					$('#loader').html('');
+					console.log(e.responseText);
+				}
+			});
+		});
+
 		$('#context-menu-delete').on('click', function() {
 			$('#delete-modal-list-title').text($('#context-list-title').text());
 		});
@@ -595,19 +753,21 @@
 
 		$('#item-list').css('height', $(window).height() - 90);
 
-		$('#ongoing-todo, #completed-todo').on('click', 'td.todo-item-label', function(){
-			if($('.mdl-layout__drawer-right').hasClass('active')){       
-				$('.mdl-layout__drawer-right').removeClass('active'); 
-			} else{
-				var item = $(this).children();
-				$('#item-title-drawer-textfield').val(item[0].innerText);
-				$('.mdl-layout__drawer-right').addClass('active'); 
-			}
-		});
-
 		$('.mdl-layout__obfuscator-right').click(function(){
 			if($('.mdl-layout__drawer-right').hasClass('active')){       
-				$('.mdl-layout__drawer-right').removeClass('active'); 
+				$('.mdl-layout__drawer-right').removeClass('active');
+				$.post('<?= base_url('user') ?>', {
+					update_task: true,
+					todo_id: clicked_todo_id,
+					list_id: clicked_list_id,
+					item_desc: $('#item-title-drawer-textfield').val(),
+					assign_to: $('#item-assign-drawer').val(),
+					due_date: $('#item-due-date-drawer').val(),
+					note: $('#item-note-drawer').val()
+				})
+				.done(function(response) {
+					clicked_item[0].childNodes[0].innerText = $('#item-title-drawer-textfield').val();
+				});
 			} else{
 				$('.mdl-layout__drawer-right').addClass('active'); 
 			}
@@ -615,7 +775,7 @@
 
 		$('#ongoing-todo, #completed-todo').on('click', 'input.mdl-checkbox__input', function() {
 			$.post('<?= base_url('user') ?>', {
-				update_task: true,
+				mark_as_completed: true,
 				todo_id: $(this).data('todo-id'),
 				list_id: $(this).data('list-id'),
 				completed: $(this).is(':checked')
@@ -763,6 +923,59 @@
 			});
 		});
 	});
+
+	function clean(node) {
+		for(var n = 0; n < node.childNodes.length; n++)
+		{
+			var child = node.childNodes[n];
+			if
+			(
+				child.nodeType === 8 
+				|| 
+				(child.nodeType === 3 && !/\S/.test(child.nodeValue))
+				)
+			{
+				node.removeChild(child);
+				n --;
+			}
+			else if(child.nodeType === 1)
+			{
+				clean(child);
+			}
+		}
+	}
+
+	function getFileType(filename) {
+		var pdf 	= ['pdf'];
+		var img 	= ['jpg', 'jpeg', 'bmp', 'png'];
+		var doc 	= ['doc', 'docx'];
+		var excel	= ['xls', 'xlsx'];
+		var ppt 	= ['ppt', 'pptx'];
+		var audio	= ['mp3', 'wav'];
+		var zip		= ['zip', 'rar'];
+		var text    = ['txt'];
+
+		var fileExt = filename.split('.').pop();
+		if ($.inArray(fileExt, pdf) != - 1) {
+			return 'pdf';
+		} else if ($.inArray(fileExt, img) != - 1) {
+			return 'image';
+		} else if ($.inArray(fileExt, doc) != - 1) {
+			return 'word';
+		} else if ($.inArray(fileExt, excel) != - 1) {
+			return 'excel';
+		} else if ($.inArray(fileExt, ppt) != - 1) {
+			return 'powerpoint';
+		} else if ($.inArray(fileExt, audio) != - 1) {
+			return 'audio';
+		} else if ($.inArray(fileExt, zip) != - 1) {
+			return 'zip';
+		} else if ($.inArray(fileExt, text) != - 1) {
+			return 'txt';
+		}  
+
+		return '';
+	}
 </script>
 
 

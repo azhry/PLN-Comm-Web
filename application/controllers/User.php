@@ -17,16 +17,27 @@ class User extends MY_Controller
 
 	public function index()
 	{
-		$this->_update_task();
+		$this->_mark_as_completed();
 		$this->_quick_add_task();
+		$this->_get_task_details();
 
 		if ($action = $this->input->get('action'))
 		{
 			if ($action == 'get_list_members')
 			{
 				$this->_get_list_member();
-				exit;
 			}
+			else if ($action == 'get_todo_files')
+			{
+				$this->_get_todo_files();
+			}
+			exit;
+		}
+
+		if ($this->POST('action'))
+		{
+			$this->_upload_file();
+			exit;
 		}
 
 		if ($this->POST('get_task'))
@@ -67,6 +78,12 @@ class User extends MY_Controller
 			exit;
 		}
 
+		if ($this->POST('update_task'))
+		{
+			$this->_update_task();
+			exit;
+		}
+
 		$this->load->model('todo_lists_m');
 		$this->load->model('list_access_m');
 		$this->load->model('todo_items_m');
@@ -81,6 +98,48 @@ class User extends MY_Controller
 		$this->data['nav_title']	= $this->session->userdata('name');
 		$this->data['content']		= 'todo_list';
 		$this->template($this->data);
+	}
+
+	private function _upload_file()
+	{
+		if ($this->POST('action'))
+		{
+			$action = $this->POST('action');
+			if ($action == 'upload_file')
+			{
+				$this->load->model('files_m');
+				do
+				{
+					$file_id = mt_rand();
+					$is_duplicate = $this->files_m->get_row(['FILE_ID' => $file_id]);
+				}
+				while ($is_duplicate);
+				$file_name	= basename($_FILES['uploaded_file']['name']);
+				$this->files_m->insert([
+					'FILE_ID' 	=> $file_id,
+					'TODO_ID'	=> $this->POST('todo_id'),
+					'FILENAME'	=> $file_id . '-' . $file_name
+				]);
+				$this->upload_any_type($file_id . '-' . $file_name, 'uploads', 'uploaded_file');
+				echo $file_id . '-' . $file_name;
+				exit;
+			}
+		}
+	}
+
+	private function _get_todo_files()
+	{
+		$this->data['todo_id'] = $this->input->get('TODO_ID');
+		if (!isset($this->data['todo_id']))
+		{
+			echo json_encode([]);
+			exit;
+		}
+
+		$this->load->model('files_m');
+		$this->data['files'] = $this->files_m->get(['TODO_ID' => $this->data['todo_id']]);
+		echo json_encode($this->data['files']);
+		exit;
 	}
 
 	private function _get_list_member()
@@ -304,9 +363,31 @@ class User extends MY_Controller
 		}
 	}
 
-	private function _update_task()
+	private function _get_task_details()
 	{
-		if ($this->POST('update_task'))
+		if ($this->POST('get_task_details'))
+		{
+			$this->load->model('todo_items_m');
+			$this->load->model('list_access_m');
+			$this->load->model('users_m');
+			$data['TODO_ID'] = $this->POST('todo_id');
+			$data['LIST_ID'] = $this->POST('list_id');
+			$data['todo'] 	= $this->todo_items_m->get_row(['TODO_ID' => $data['TODO_ID']]);
+			$data['assign']	= $this->users_m->get_row(['USER_ID' => $data['todo']->ASSIGN_TO]);
+			$data['access'] = $this->list_access_m->get(['LIST_ID' => $data['LIST_ID']]);
+			$data['members'] = [];
+			foreach ($data['access'] as $access)
+			{
+				$data['members'] []= $this->users_m->get_row(['USER_ID' => $access->USER_ID]);
+			}
+			echo json_encode($data);
+			exit;
+		}
+	}
+
+	private function _mark_as_completed()
+	{
+		if ($this->POST('mark_as_completed'))
 		{
 			$this->load->model('todo_items_m');
 			$data['TODO_ID'] 		= $this->POST('todo_id');
@@ -326,6 +407,30 @@ class User extends MY_Controller
 			echo json_encode($response);
 			exit;
 		}
+	}
+
+	private function _update_task()
+	{
+		if ($this->POST('update_task'))
+		{
+			$this->load->model('todo_items_m');
+			$data['TODO_ID'] 	= $this->POST('todo_id');
+			$data['LIST_ID'] 	= $this->POST('list_id');
+			$data['ITEM_DESC'] 	= $this->POST('item_desc');
+			$data['ASSIGN_TO'] 	= $this->POST('assign_to');
+			$data['DUE_DATE']	= $this->POST('due_date');
+			$data['NOTE']		= $this->POST('note');
+			if ($data['DUE_DATE'] == '0000-00-00' or empty($data['DUE_DATE']))
+			{
+				$data['DUE_DATE'] = NULL;
+			}
+			$this->todo_items_m->update($data['TODO_ID'], $data);
+			$response['item'] = $this->todo_items_m->get_row(['TODO_ID' => $data['TODO_ID'], 'LIST_ID' => $data['LIST_ID']]);
+			echo json_encode($response['item']);
+			return TRUE;
+		}
+
+		return FALSE;
 	}
 
 	public function logout()

@@ -22,6 +22,7 @@
     <link href="<?= base_url() ?>/assets/css/material-kit.css" rel="stylesheet"/>
     <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.1.0/material.min.css">
     <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/assets/css/dataTables.material.css">
+    <link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/bootstrap-material-datetimepicker.css') ?>">
 
     <!--   Core JS Files   -->
 	<script src="<?= base_url() ?>/assets/js/jquery.min.js" type="text/javascript"></script>

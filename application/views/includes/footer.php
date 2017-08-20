@@ -12,5 +12,8 @@
 
 	<!-- Control Center for Material Kit: activating the ripples, parallax effects, scripts from the example pages etc -->
 	<script src="<?= base_url() ?>/assets/js/material-kit.js" type="text/javascript"></script>
+	<script type="text/javascript" src="<?= base_url('assets/js/moment.js') ?>"></script>
+
+	<script type="text/javascript" src="<?= base_url('assets/js/bootstrap-material-datetimepicker.js') ?>"></script>
 
 </html>
