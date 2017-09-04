@@ -254,7 +254,7 @@
 	}
 
 	.todo-item-label {
-		width: 100%;
+		width: 87%;
 		cursor: pointer;
 	}
 
@@ -262,6 +262,13 @@
 	   position: absolute;
 	   left: 0;
 	   top: 20px;
+	}
+
+	.item-timestamp {
+		width: 100%;
+		color: #0000CC;
+		font-size: 12px;
+		right: 0;
 	}
 </style>
 <div class="mdl-layout__drawer-right">
@@ -377,7 +384,64 @@
 										</label>
 									</td>
 									<td class="todo-item-label">
-										<span class="mdl-checkbox__label uncompleted-todo-item-title"><?= $item->ITEM_DESC ?></span>
+										<p class="mdl-checkbox__label uncompleted-todo-item-title"><?= $item->ITEM_DESC ?></p>
+									</td>
+									<td class="item-timestamp">
+										<?php  
+											if (!empty($item->DUE_DATE))
+											{
+												$now 		= new DateTime(date('Y-m-d'));
+												$due_date 	= new DateTime($item->DUE_DATE);
+												$diff		= $now->diff($due_date);
+
+												$timestamp = strtotime($item->DUE_DATE);
+												$day = date('D', $timestamp);
+
+												if ($diff->days == 0)
+												{
+													echo '<span style="color: blue;">';
+													echo 'Today';
+													echo '</span>';
+												}
+												else if ($diff->format('%R') == '+')
+												{
+													echo '<span style="color: blue;">';
+
+													if ($diff->days == 1)
+													{
+														echo 'Tomorrow';
+													}
+													else
+													{
+														echo $day . ', ' . $item->DUE_DATE;
+													}
+
+													echo '</span>';
+												}
+												else if ($diff->format('%R') == '-')
+												{
+													echo '<span style="color: darkred;">';
+
+													if ($diff->days == 1)
+													{
+														echo 'Yesterday';
+													}
+													else
+													{
+														echo $day . ', ' . $item->DUE_DATE;
+													}
+
+													echo '</span>';
+												}
+											}
+
+											if (!empty($item->ASSIGN_TO))
+											{
+												echo '<i class="material-icons" data-toggle="tooltip" data-placement="top" title="'.$this->users_m->get_row(['USER_ID' => $item->ASSIGN_TO])->NAME.'">';
+												echo 'account_circle';
+												echo '</i>';
+											}
+										?>
 									</td>
 								</tr>
 							</table>
@@ -406,6 +470,64 @@
 									</td>
 									<td class="todo-item-label">
 										<span class="mdl-checkbox__label completed-todo-item-title"><?= $item->ITEM_DESC ?></span>
+									</td>
+									<td class="item-timestamp">
+										<?php  
+											if (!empty($item->DUE_DATE))
+											{
+												$now 		= new DateTime(date('Y-m-d'));
+												$due_date 	= new DateTime($item->DUE_DATE);
+												$diff		= $now->diff($due_date);
+
+												$timestamp = strtotime($item->DUE_DATE);
+												$day = date('D', $timestamp);
+												
+												if ($diff->days == 0)
+												{
+													echo '<span style="color: blue;">';
+													echo 'Today';
+													echo '</span>';
+												}
+												else if ($diff->format('%R') == '+')
+												{
+													echo '<span style="color: blue;">';
+
+													if ($diff->days == 1)
+													{
+														echo 'Tomorrow';
+													}
+													else
+													{
+														echo $day . ', ' . $item->DUE_DATE;
+													}
+
+													echo '</span>';
+												}
+												else if ($diff->format('%R') == '-')
+												{
+													echo '<span style="color: darkred;">';
+
+													if ($diff->days == 1)
+													{
+														echo 'Yesterday';
+													}
+													else
+													{
+														echo $day . ', ' . $item->DUE_DATE;
+													}
+
+													echo '</span>';
+												}
+											}
+
+											if (!empty($item->ASSIGN_TO))
+											{
+												echo '<i class="material-icons" data-toggle="tooltip" data-placement="top" title="'.$this->users_m->get_row(['USER_ID' => $item->ASSIGN_TO])->NAME.'">';
+												echo 'account_circle';
+												echo '</i>';
+											}
+
+										?>
 									</td>
 								</tr>
 							</table>
@@ -487,9 +609,9 @@
         <h4 class="modal-title"><span id="name-list-member">List</span> Members</h4>
       </div>
       <div class="modal-body">
-      	<?= form_open('users') ?>
+      	<?= form_open('user') ?>
       		<div class="form-group">
-      			<input type="email" name="email" class="form-control" placeholder="Email">
+      			<input type="text" name="email" class="form-control" placeholder="Email">
       			<input type="hidden" name="list_id" id="list-id-share">
       		</div>
       		<input type="submit" name="share" value="Invite" class="btn btn-info">
@@ -705,7 +827,9 @@
 					if (json.status == 0) {
 						$('#ongoing-todo').html('');
 						var ongoingItems = json.ongoing;
+						
 						for (var i = 0; i < ongoingItems.length; i++) {
+
 							$('#ongoing-todo').append('<div class="panel panel-default">' +
 								'<div class="panel-body">' +
 									'<div>' +
@@ -719,6 +843,10 @@
 												'<td class="todo-item-label">' +
 													'<span class="mdl-checkbox__label uncompleted-todo-item-title">' + ongoingItems[i].ITEM_DESC + '</span>' +
 												'</td>' +
+												'<td class="item-timestamp">' + 
+													getDateState(ongoingItems[i].DUE_DATE) +
+													getAssignTo(ongoingItems[i].ASSIGN_TO) +
+												'</td>' + 
 											'</tr>' +
 										'</table>' +
 									'</div>' +
@@ -787,6 +915,7 @@
 						var completedItems = json.completed;
 						$('#ongoing-todo').html('');
 						$('#completed-todo').html('');
+
 						for (var i = 0; i < ongoingItems.length; i++) {
 							$('#ongoing-todo').append('<div class="panel panel-default">' +
 								'<div class="panel-body">' +
@@ -801,6 +930,10 @@
 												'<td class="todo-item-label">' +
 													'<span class="mdl-checkbox__label uncompleted-todo-item-title">' + ongoingItems[i].ITEM_DESC + '</span>' +
 												'</td>' +
+												'<td class="item-timestamp">' +
+													getDateState(ongoingItems[i].DUE_DATE) +
+													getAssignTo(ongoingItems[i].ASSIGN_TO) +
+												'</td>' +
 											'</tr>' +
 										'</table>' +
 									'</div>' +
@@ -810,6 +943,7 @@
 							componentHandler.upgradeDom('MaterialCheckbox');
 						}
 						for (var i = 0; i < completedItems.length; i++) {
+
 							$('#completed-todo').append('<div class="panel panel-default" style="opacity: 0.7;">' +
 								'<div class="panel-body">' +
 									'<div>' +
@@ -822,6 +956,10 @@
 												'</td>' +
 												'<td class="todo-item-label">' +
 													'<span class="mdl-checkbox__label completed-todo-item-title">' + completedItems[i].ITEM_DESC + '</span>' +
+												'</td>' +
+												'<td class="item-timestamp">' +
+													getDateState(completedItems[i].DUE_DATE) +
+													getAssignTo(completedItem[i].ASSIGN_TO) +
 												'</td>' +
 											'</tr>' +
 										'</table>' +
@@ -867,6 +1005,7 @@
 					$('#completed-todo').html('');
 					var ongoing_item = json.ongoing;
 					var completed_item = json.completed;
+					
 					for (var i = 0; i < ongoing_item.length; i++)
 					{
 						$('#ongoing-todo').append('<div class="panel panel-default">' +
@@ -881,6 +1020,10 @@
 											'</td>' +
 											'<td class="todo-item-label">' +
 												'<span class="mdl-checkbox__label uncompleted-todo-item-title">' + ongoing_item[i].ITEM_DESC + '</span>' +
+											'</td>' +
+											'<td class="item-timestamp">' +
+												getDateState(ongoing_item[i].DUE_DATE) +
+												getAssignTo(ongoing_item[i].ASSIGN_TO) +
 											'</td>' +
 										'</tr>' +
 									'</table>' +
@@ -906,6 +1049,10 @@
 											'<td class="todo-item-label">' +
 												'<span class="mdl-checkbox__label completed-todo-item-title">' + completed_item[i].ITEM_DESC + '</span>' +
 											'</td>' +
+											'<td class="item-timestamp">' +
+												getDateState(completed_item[i].DUE_DATE) +
+												getAssignTo(completed_item[i].ASSIGN_TO) +
+											'</td>' +
 										'</tr>' +
 									'</table>' +
 								'</div>' +
@@ -923,6 +1070,8 @@
 			});
 		});
 	});
+	
+	// $('[data-toggle="tooltip"]').tooltip();
 
 	function clean(node) {
 		for(var n = 0; n < node.childNodes.length; n++)
@@ -975,6 +1124,83 @@
 		}  
 
 		return '';
+	}
+
+	function getDateState(date) {
+		var output = '';
+		if (date == null) {
+			return '';
+		}
+
+		var day = 24 * 60 * 60 * 1000;
+		var dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+		var today = new Date();
+		var itemDueDate = date;
+		itemDueDate = itemDueDate.split('-');
+
+		var dueDate = new Date(
+			itemDueDate[0],
+			itemDueDate[1],
+			itemDueDate[2]
+		);
+
+		var diff = dueDate.getTime() - today.getTime();
+
+		if (diff > 0)
+		{
+			output += '<span style="color: blue">';
+			if (itemDueDate[0] == today.getFullYear() && itemDueDate[1] == today.getMonth() + 1 && itemDueDate[2] == today.getDate())
+			{
+				output += 'Today';
+			}
+			else if (itemDueDate[0] == today.getFullYear() && itemDueDate[1] == today.getMonth() + 1 && itemDueDate[2] == today.getDate() + 1)
+			{
+				output += 'Tomorrow';
+			}
+			else
+			{
+				var idx = dueDate.getDay() - 2 < 0 ? dayName.length - 1 - (dueDate.getDay() - 2) * -1 : dueDate.getDay() - 2;
+				output += dayName[idx] + ', ';
+				output += itemDueDate;
+			}
+			output += '</span>';
+		}
+		else
+		{
+			output += '<span style="color: darkred">';
+			if (itemDueDate[0] == today.getFullYear() && itemDueDate[1] == today.getMonth() + 1 && itemDueDate[2] == today.getDate() - 1)
+			{
+				output += 'Yesterday';
+			}
+			else
+			{
+				var idx = dueDate.getDay() - 2 < 0 ? dayName.length - 1 - (dueDate.getDay() - 2) * -1  : dueDate.getDay() - 2; 
+				output += dayName[idx] + ', ';
+				output += itemDueDate;
+			}	
+			output += '</span>';
+		}
+
+		return output;
+	}
+
+	function getAssignTo(user_id) {
+		var name = '';
+		if (user_id != null)
+		{
+			$.ajax({
+				url: '<?= base_url('user?user_id=') ?>' + user_id,
+				type: 'GET',
+				async: false,
+				success: function(response) {
+					var json = $.parseJSON(response);
+					name = '<i class="material-icons" data-toggle="tooltip" data-placement="top" title="' + json.NAME + '">account_circle</i>';
+					$('[data-toggle="tooltip"]').tooltip();
+				}
+			});
+		}
+		return name;
 	}
 </script>
 

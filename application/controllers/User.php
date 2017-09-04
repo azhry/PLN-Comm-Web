@@ -34,6 +34,12 @@ class User extends MY_Controller
 			exit;
 		}
 
+		if ($this->input->get('user_id'))
+		{
+			$this->_get_user();
+			exit;
+		}
+
 		if ($this->POST('action'))
 		{
 			$this->_upload_file();
@@ -53,6 +59,7 @@ class User extends MY_Controller
 			redirect('user');
 			exit;
 		}
+
 
 		if ($this->_create_list())
 		{
@@ -87,6 +94,7 @@ class User extends MY_Controller
 		$this->load->model('todo_lists_m');
 		$this->load->model('list_access_m');
 		$this->load->model('todo_items_m');
+		$this->load->model('users_m');
 		$this->data['list_access']	= $this->list_access_m->get(['USER_ID' => $this->data['user_id']]);
 		if (isset($this->data['list_access']))
 		{
@@ -431,6 +439,14 @@ class User extends MY_Controller
 		}
 
 		return FALSE;
+	}
+
+	private function _get_user()
+	{
+		$this->load->model('users_m');
+		$user_id = $this->input->get('user_id');
+		$user = $this->users_m->get_row(['USER_ID' => $user_id]);
+		echo json_encode($user);
 	}
 
 	public function logout()
